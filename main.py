@@ -84,8 +84,8 @@ class Comment(db.Model):
 #     db.drop_all()
 #     db.create_all()
 
-# with app.app_context():
-#     db.create_all()
+with app.app_context():
+    db.create_all()
 
 
 @app.route('/')
@@ -225,7 +225,7 @@ def add_new_post():
     return render_template("make-post.html", form=form, current_user=current_user, time=date.today().strftime("%Y"))
 
 
-@app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
+@app.route("/edit-post/<int:post_id>", methods=["GET", "PUT"])
 @login_required
 @admin_only
 def edit_post(post_id):
