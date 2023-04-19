@@ -52,6 +52,7 @@ class User(UserMixin, db.Model):
     comments = relationship("Comment", back_populates="author")
 
 class BlogPost(db.Model):
+    """post are related to specific user (author)"""
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)
 
@@ -70,6 +71,8 @@ class BlogPost(db.Model):
     comments = relationship("Comment", back_populates="parent_post")
 
 class Comment(db.Model):
+    """comments are related to specific user (author) and specific post (parerent_post)"""
+
     __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
@@ -95,6 +98,9 @@ class Comment(db.Model):
 
 @app.route('/')
 def get_all_posts():
+    """This function renders home page, and allow us to read objects from the database to showcase them
+    a demonstration of every post"""
+
     with app.app_context():
         posts = db.session.query(BlogPost).all()
         users = db.session.query(User).all()
@@ -103,6 +109,9 @@ def get_all_posts():
 
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
+    """This function renders every post, and allow us to read objects (posts) from the database. this function
+    also allow users create comments in the specific post"""
+
     requested_post = db.session.query(BlogPost).get(post_id)
     comment_form = CommentForm()
 
@@ -124,17 +133,26 @@ def show_post(post_id):
 
 @app.route("/about")
 def about():
+    """This function renders about page"""
     return render_template("about.html", current_user=current_user, time=date.today().strftime("%Y"))
 
 
 @app.route("/contact")
 def contact():
+    """This function renders contact page"""
     return render_template("contact.html", current_user=current_user, time=date.today().strftime("%Y"))
 
 
 
 @app.route('/register', methods=["GET", "POST"])
 def register():
+    """This function renders register page, and make possible to register new user:
+            1. firstly validate if the user already exist
+            2. secondly, if the user doesn't exist the function will encrypt
+               the password hashing it and salting it
+            3. subsequently the function create new user un the database, in the user table
+            4. finally returns home page"""
+
     register_form = RegisterForm()
     if register_form.validate_on_submit():
         if db.session.query(User).filter_by(email=register_form.email.data).first():
@@ -165,6 +183,14 @@ def register():
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
+    """This function renders login page, and make possible to login users already exist:
+               1. firstly validate if the user already exist,
+                  if not this function will redirect user to register page
+               2. secondly, if the user exist the function will dencrypt
+                  the password encrypted.
+               3. In case the password is wrong the function will return to login page again with a flash message
+               4. finally if password is correct returns to home page"""
+
     login_form = LoginForm()
     if login_form.validate_on_submit():
         email = login_form.email.data
@@ -193,6 +219,7 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    """logout user"""
     logout_user()
     return redirect(url_for('get_all_posts'))
 
@@ -200,6 +227,9 @@ def logout():
 
 #Create admin-only decorator
 def admin_only(f):
+    """This function makes the first user (id=1) the admin user, who is allowed for specific functions
+        such as create post, edit post, and deleting them"""
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         #If id is not 1 then return abort with 403 error
@@ -213,6 +243,12 @@ def admin_only(f):
 @login_required
 @admin_only
 def add_new_post():
+    """This function renders make-post.html page, and make possible create new post:
+            1. firstly display CreatePostForm from forms.py, subsequently validate answers
+            2. after validate answers, the function will create new post in the database, table blogpost.
+            3. remember, blogpost has relation with users table. therefor the post is connected to specific user
+            4. finally returns to home page"""
+
     form = CreatePostForm()
     if form.validate_on_submit():
 
@@ -234,6 +270,11 @@ def add_new_post():
 @login_required
 @admin_only
 def edit_post(post_id):
+    """This function renders make-post.html page, and make possible edit specific post:
+            1. firstly display CreatePostForm from forms.py, subsequently validate answers
+            2. after validate answers, the function will update post in the database, table blogpost.
+            3. finally returns to home page"""
+
     post = db.session.query(BlogPost).get(post_id)
     edit_form = CreatePostForm(
         title=post.title,
@@ -257,6 +298,9 @@ def edit_post(post_id):
 @login_required
 @admin_only
 def delete_post(post_id):
+    """This function display a "x" image for every post in hom page, and make possible delete specific post:
+            1. Just clicking on the x button the post will be deleted in the database"""
+
     post_to_delete = db.session.query(BlogPost).get(post_id)
     db.session.delete(post_to_delete)
     db.session.commit()
