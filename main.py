@@ -9,10 +9,14 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from forms import CreatePostForm,  RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
+import decouple
 
+# environment variables
+TOP_SECRET_KEY = decouple.config('SECRET_KEY')
+POSTGRESQL_DATABASE = decouple.config('POSTGRESQL_URL')
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'TOP_SECRET_KEY'
+app.config['SECRET_KEY'] = TOP_SECRET_KEY
 ckeditor = CKEditor(app)
 Bootstrap(app)
 login_manager = LoginManager(app)
@@ -21,7 +25,8 @@ gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=Fa
 
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = POSTGRESQL_DATABASE
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
