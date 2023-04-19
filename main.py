@@ -294,7 +294,7 @@ def edit_post(post_id):
     return render_template("make-post.html", form=edit_form, current_user=current_user, is_edit=True, time=date.today().strftime("%Y"))
 
 
-@app.route("/delete/<int:post_id>", methods=["POST"])
+@app.route("/delete/<int:post_id>", methods=["GET", "POST"])
 @login_required
 @admin_only
 def delete_post(post_id):
